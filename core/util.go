@@ -7,16 +7,16 @@ import (
 	"net/http"
 	"sort"
 	"time"
+	"github.com/ptflp/adrenalinBank/models"
 )
 
-func chetoTam () {
-
+func Operations(oc models.User) []models.Operation {
 	client := &http.Client{}
-	data := []byte(`{"productId":"2268927"}`)
+	data := []byte(`{"productId": ` + oc.ProductId + `}`)
 	ff := bytes.NewReader(data)
 	req, err := http.NewRequest("POST", "https://diybank.aeb-it.ru/api/operation", ff)
 	authType := "Bearer"
-	authToken := "eyJhbGciOiJSUzI1NiIsImtpZCI6IjBYUk1QRzJIU0NNMElRQlY1Mlk0WEVIQjhDSlVWRE5ZTExNRUIwSlIiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiIzIiwibmFtZSI6ImxvZ2luMSIsInRva2VuX3VzYWdlIjoiYWNjZXNzX3Rva2VuIiwianRpIjoiMWEyYjE0YjMtOTViMC00MjQwLTg4OTYtMGE2NGE4OWRkZjVjIiwiYXVkIjoiQWViSXQuRElZQmFuayIsIm5iZiI6MTU1MDg5OTc5NiwiZXhwIjoxNTUxNTA0NTk2LCJpYXQiOjE1NTA4OTk3OTYsImlzcyI6Imh0dHA6Ly9kaXliYW5rLmFlYi1pdC5ydS8ifQ.nzPux_UlisWbxxtalV257Y35zLAOnheHokQxJprg0dUkvQzLQTzrGUsjAk3BpoNuwJuL6aJcD5e3rq9Zbi8Khn2o_ZYjrz2jyWehJJ3tPo7IOzWdVhCp5mGz6ducPjRRUTIcGcv3jCeP3T8KTJAv_W4I1xUkS3PcJ1DXWVrbJwRWbEsMpnZS6MiSOluWZ-AV_SBDX0dXZr5y0OnexHNxg9DnHTczHug5xaUlJNQKp_H_S0usGbroHc8bwnSb0NnS_K03WaisSILPw8fUDBqDr8S60tmZodRGqmR6OarbswpgjGmUwmYWP5BsELJFDQI-uWEy0Mg8pHwarcPRLIJJrg"
+	authToken := oc.Token
 	req.Header.Add("Authorization", authType + " " + authToken)
 	req.Header.Add("accept", `application/json`)
 	req.Header.Add("Content-Type", `application/json-patch+json`)
@@ -42,7 +42,13 @@ func chetoTam () {
 		}
 		operations[index].Timestamp = t.Unix()
 	}
+
+	return operations
+}
+
+func SortOperationsAsc(o []models.Operation) (operations []models.Operation) {
 	sort.Slice(operations, func(i, j int) bool {
 		return operations[i].Timestamp < operations[j].Timestamp
 	})
+	return operations
 }

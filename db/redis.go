@@ -21,14 +21,40 @@ func getMoveKey(game string) string {
 	return "game_" + game
 }
 
-func SaveMove(game string, m models.WebMoveObject) error {
+func SaveMove(operation models.Operation) error {
 	b, _ := json.Marshal(m)
 
-	err := client.RPush(getMoveKey(game), b).Err()
+	err := client.Set(operation.Id, b).Err()
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func SaveOperations(o []models.Operation) error {
+	b, _ := json.Marshal(o)
+
+	err := client.RPush("operations", b).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetOperations() (operations []models.Operation, err error){
+	rows, err := client.LRange("operations", 0, -1).Result()
+	if err != nil {
+		return operations, err
+	}
+
+	ms := []models.Operation{}
+	for _, val := range rows {
+		var m = models.Operation{}
+		err = json.Unmarshal([]byte(val), &m)
+		ms = append(ms, m)
+	}
+
+	return ms, err
 }
 
 func GetMoves(game string) (moves models.MoveObjects, err error) {
