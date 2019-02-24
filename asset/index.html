@@ -41,6 +41,7 @@ margin: auto;
             .force("collision", d3.forceCollide(function radius(d,i){return d.scaledValue;}))
             .alphaTarget(1)
             .on("tick", bubblesTicked);
+                    var i = 0;
 
         		var websocket;
 
@@ -54,33 +55,37 @@ margin: auto;
              	websocket.onerror = function(event) {
                 document.getElementById("status").innerHTML = "Error";
               };
+              var Data = [];
+            var interval = setInterval(function() {
+              if (i < Data.length) {
+              if (Data[i].Amount <0 ) {
+                Data[i].Amount = -Data[i].Amount;
+               }
+              if (Data[i].Amount > 1000 ) {
+                Data[i].Amount = Data[i].Amount/1000;
+               }
+              if (Data[i].Amount > 200 ) {
+                Data[i].Amount = Data[i].Amount/100;
+               }
+                  var newTx = {id:Data[i].Id, value: Data[i].Amount, scaledValue: 5 + Math.log(Data[i].Amount) };
+                  console.log(newTx);
+                  txNodes.push(newTx);
+                  if (txNodes.length > 400)
+                  {
+                        txNodes.shift();
+                  }
+                  bubblesRestart();
+                i++;
+              }
+            },900);
 
               websocket.onmessage = function(event) {
               	//message processing code goes here
               	console.log(event);
                 var msgData = JSON.parse(event.data);
+                Data = msgData;
                 value = msgData/100;
                     console.log(msgData);
-                    var i = 0;
-                    var interval = setInterval(function() {
-                      if (i < msgData.length) {
-                      if (msgData[i].Amount <0 ) {
-                        msgData[i].Amount = -msgData[i].Amount;
-                       }
-                          var newTx = {id:msgData[i].Id, value: msgData[i].Amount, scaledValue: 5 + Math.log(msgData[i].Amount) };
-                          console.log(newTx);
-                          txNodes.push(newTx);
-                          if (txNodes.length > 400)
-                          {
-                                txNodes.shift();
-                          }
-                          bubblesRestart();
-                        i++;
-                      }
-                    },1800);
-                  if (msgData.Amount < 0) {
-                    msgData.Amount = -msgData.Amount
-                  }
               };
             };
 
