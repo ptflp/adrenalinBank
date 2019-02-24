@@ -48,6 +48,6 @@ func SyncData() {
 
 		db.SaveOperations(operations)
 
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(5000 * time.Millisecond)
 	}
 }
