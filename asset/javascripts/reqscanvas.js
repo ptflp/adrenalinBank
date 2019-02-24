@@ -451,6 +451,128 @@
 
   window.onload = init;
 
+    var i = 0;
+
+    var websocket;
+
+      websocket = new WebSocket("ws://" + location.host + "/echo");
+
+      websocket.onopen = function() {
+        document.getElementById("status").innerHTML ="Connected";
+        };
+
+        websocket.onerror = function(event) {
+        document.getElementById("status").innerHTML = "Error";
+      };
+
+            var Data = [];
+            var interval = setInterval(function() {
+              if (i < Data.length) {
+              if (Data[i].Amount <0 ) {
+                Data[i].Amount = -Data[i].Amount;
+               }
+               var date = new Date(Data[i].Date);
+                               console.log(date);
+               var hours = date.getHours();
+               var year = date.getFullYear();
+               var month = date.getMonth();
+               var sec = date.getSeconds();
+               var day = date.getDay();
+               var formated_date = day +"/" + month + "/" + year+":"+hours+":" + i + ":" + sec + " +0900";
+
+               var robj = {"ip":Data[i].CounterpartBankName,"time":formated_date,"method":Data[i].Currency,"path":Data[i].Id,"result":"200","size":Data[i].Amount}
+
+//                  var newTx = {id:Data[i].Id, value: Data[i].Amount, scaledValue: 5 + Math.log(Data[i].Amount) };
+//                  {"ip":"127.0.0.1","time":"24/Feb/2019:17:07:32 +0900","method":"GET","path":"/","result":"200","size":"181719"}
+
+     console.log(robj);
+
+    if (typerequests[robj.result] === undefined) {
+      typerequests[robj.result] = 0;
+    }
+
+    typerequests[robj.result]++;
+
+    // if not paused, then add it to buffer
+    if (intervalId) {
+      var m = new RemoteRequest();
+      m.x   = MARGIN_LEFT; // canvasW * 0.5;
+      m.vX  = speed;
+      m.req = robj;
+      requests.push(m);
+
+      if (robj.origin !== undefined) {
+        // Find pre generated origin, for inherit color
+        var originpos = findOriginByName(robj.origin);
+
+        if (originpos < 0) {
+          // New origin assignment
+          var origin = new Origin();
+          origin.path = robj.origin;
+          origin.color = {r: Math.floor( Math.random()*155 + 100 ), g: Math.floor( Math.random()*155 + 100 ), b: Math.floor( Math.random()*155 + 100 )};
+          originpos = origins.push(origin) - 1;
+//          console.log('New origin: ' + robj.origin);
+        }
+
+        m.color = origins[originpos].color;
+      } else {
+        // For no origin request, only one origin, then random color
+        m.color = {r: Math.floor( Math.random()*155 + 100 ), g: Math.floor( Math.random()*155 + 100 ), b: Math.floor( Math.random()*155 + 100 )};
+      }
+
+      // Search a request slot
+      var srcslotpos = findSlotByIp(robj.ip);
+
+      if (srcslotpos < 0) {
+        // New slot assignment
+        var sslot = new Slot();
+        sslot.ip = robj.ip;
+        sslot.count = 1;
+        sslot.y  = Math.floor( Math.random() * (canvasH - MARGIN_TOP - MARGIN_BOTTOM) + MARGIN_TOP ); // TODO: Find a correct slot vertical position
+        srcslotpos = srcslots.push(sslot) - 1;
+//        console.log('New request sslot at: ' + sslot.y);
+      } else {
+        srcslots[srcslotpos].count++;
+//        console.log('Recycled request slot at: ' + srcslots[srcslotpos].y);
+      }
+
+      // Search a resource slot
+      var dstslotpos = findSlotByTarget(robj.path);
+
+      if (dstslotpos < 0) {
+        // New slot assignment
+        var dslot = new Slot();
+        dslot.path = robj.path;
+        dslot.count = 1;
+        dslot.y  = Math.floor( Math.random() * (canvasH - MARGIN_TOP - MARGIN_BOTTOM) + MARGIN_TOP ); // TODO: Find a correct slot vertical position
+        dstslotpos = dstslots.push(dslot) - 1;
+        console.log('New resource dslot at: ' + dslot.y);
+      } else {
+        dstslots[dstslotpos].count++;
+        console.log('Recycled resource slot at: ' + dstslots[dstslotpos].y);
+      }
+
+      m.y = srcslots[srcslotpos].y;
+
+      // When the origin and target slots are set, then the vertical speed can be calculated
+      m.vY = (dstslots[dstslotpos].y - srcslots[srcslotpos].y) / (canvasW - MARGIN_LEFT - MARGIN_RIGHT) * speed;
+      console.log('New request with vertical speed at: ' + m.vY);
+
+    }
+
+    ++total;
+
+                i++;
+              }
+            },900);
+
+              websocket.onmessage = function(event) {
+              	//message processing code goes here
+              	console.log(event);
+                var msgData = JSON.parse(event.data);
+                Data = msgData;
+              };
+
   // Establish the websocket connection
   var socket = io.connect('http://localhost:8081');
   socket.on('log', function (data) {
