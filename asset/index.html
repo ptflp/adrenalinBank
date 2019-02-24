@@ -67,6 +67,9 @@ margin: auto;
               if (Data[i].Amount > 200 ) {
                 Data[i].Amount = Data[i].Amount/100;
                }
+              if (Data[i].Amount < 50 ) {
+                Data[i].Amount = Data[i].Amount/100;
+               }
                   var newTx = {id:Data[i].Id, value: Data[i].Amount, scaledValue: 5 + Math.log(Data[i].Amount) };
                   console.log(newTx);
                   txNodes.push(newTx);
