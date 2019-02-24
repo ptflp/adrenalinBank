@@ -1,11 +1,9 @@
-package core
+package processes
 
 import (
 	"fmt"
-	"github.com/ptflp/adrenalinBank/processes"
-	"net/http"
-
 	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 var upgrader = websocket.Upgrader{
@@ -16,8 +14,8 @@ var upgrader = websocket.Upgrader{
 func Socket() {
 	http.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
 		conn, _ := upgrader.Upgrade(w, r, nil) // error ignored for sake of simplicity
-		processes.Conn = *conn
-		go processes.SocketSend()
+		Conn = *conn
+		Connected = 1
 		for {
 			// Read message from browser
 			msgType, msg, err := conn.ReadMessage()
@@ -34,7 +32,6 @@ func Socket() {
 			}
 		}
 	})
-
 
 	http.Handle("/", http.FileServer(http.Dir("./asset")))
 

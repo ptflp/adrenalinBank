@@ -21,10 +21,10 @@ func getMoveKey(game string) string {
 	return "game_" + game
 }
 
-func SaveMove(operation models.Operation) error {
-	b, _ := json.Marshal(m)
+func SaveOperation(operation models.Operation) error {
+	b, _ := json.Marshal(operation)
 
-	err := client.Set(operation.Id, b).Err()
+	err := client.Set(operation.Id, b, 0).Err()
 	if err != nil {
 		return err
 	}
@@ -34,27 +34,20 @@ func SaveMove(operation models.Operation) error {
 func SaveOperations(o []models.Operation) error {
 	b, _ := json.Marshal(o)
 
-	err := client.RPush("operations", b).Err()
+	err := client.Set("operations", b,0).Err()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetOperations() (operations []models.Operation, err error){
-	rows, err := client.LRange("operations", 0, -1).Result()
+func GetData(key string) (row string, err error){
+	row, err = client.Get(key).Result()
 	if err != nil {
-		return operations, err
+		return "", err
 	}
 
-	ms := []models.Operation{}
-	for _, val := range rows {
-		var m = models.Operation{}
-		err = json.Unmarshal([]byte(val), &m)
-		ms = append(ms, m)
-	}
-
-	return ms, err
+	return row, err
 }
 
 func GetMoves(game string) (moves models.MoveObjects, err error) {

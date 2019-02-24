@@ -6,7 +6,7 @@
       body {
   background-color:black;
 }
-h1 {
+h1,p {
 color: white;
 }
 svg {
@@ -17,6 +17,7 @@ margin: auto;
 </head>
 <body>
 <h1>Realtime DIY AEB TRANSACTION</h1>
+<p id="status">Not connected</p>
 <svg width="600" height="600" id="bubbleCanvas" class="vizCanvas"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
@@ -56,17 +57,30 @@ margin: auto;
 
               websocket.onmessage = function(event) {
               	//message processing code goes here
+              	console.log(event);
                 var msgData = JSON.parse(event.data);
                 value = msgData/100;
-                    value = Math.log(msgData.value);
-              console.log(msgData);
-                  var newTx = msgData;
-                  txNodes.push(newTx);
-                  if (txNodes.length > 400)
-                  {
-                  		txNodes.shift();
+                    console.log(msgData);
+                    var i = 0;
+                    var interval = setInterval(function() {
+                      if (i < msgData.length) {
+                      if (msgData[i].Amount <0 ) {
+                        msgData[i].Amount = -msgData[i].Amount;
+                       }
+                          var newTx = {id:msgData[i].Id, value: msgData[i].Amount, scaledValue: 5 + Math.log(msgData[i].Amount) };
+                          console.log(newTx);
+                          txNodes.push(newTx);
+                          if (txNodes.length > 400)
+                          {
+                                txNodes.shift();
+                          }
+                          bubblesRestart();
+                        i++;
+                      }
+                    },1800);
+                  if (msgData.Amount < 0) {
+                    msgData.Amount = -msgData.Amount
                   }
-                  bubblesRestart();
               };
             };
 

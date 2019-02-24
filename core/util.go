@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/ptflp/adrenalinBank/models"
 	"net/http"
 	"sort"
 	"time"
-	"github.com/ptflp/adrenalinBank/models"
 )
 
 func Operations(oc models.User) []models.Operation {
@@ -17,7 +17,7 @@ func Operations(oc models.User) []models.Operation {
 	req, err := http.NewRequest("POST", "https://diybank.aeb-it.ru/api/operation", ff)
 	authType := "Bearer"
 	authToken := oc.Token
-	req.Header.Add("Authorization", authType + " " + authToken)
+	req.Header.Add("Authorization", authType+" "+authToken)
 	req.Header.Add("accept", `application/json`)
 	req.Header.Add("Content-Type", `application/json-patch+json`)
 	resp, err := client.Do(req)
@@ -37,7 +37,7 @@ func Operations(oc models.User) []models.Operation {
 		layout := "2006-01-02T15:04:05"
 		t, err := time.Parse(layout, element.Date)
 		if err != nil {
-			fmt.Println(err )
+			fmt.Println(err)
 			fmt.Println(index)
 		}
 		operations[index].Timestamp = t.Unix()
