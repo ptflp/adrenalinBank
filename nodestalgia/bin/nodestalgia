@@ -24,7 +24,7 @@ if (program.args.length > 0) {
     }
   }
 } else {
-  filename.push("/var/log/apache2/access.log");
+  filename.push("/mnt/d/WebServers/usr/local/apache/logs/access.log");
 }
 
 var express   = require('express'),
